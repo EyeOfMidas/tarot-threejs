@@ -139,9 +139,10 @@
         for (let i = 0; i < cards.length; i++) {
             promises.push(cards[i].load(textureLoader));
         }
-        Promise.all(promises).then((cardMeshes) => {
-            for (let i = 0; i < cardMeshes.length; i++) {
-                scene.add(cardMeshes[i]);
+        Promise.all(promises).then((loadedCards) => {
+            for (let i = 0; i < loadedCards.length; i++) {
+                scene.add(loadedCards[i].getMesh());
+                loadedCards[i].updatePosition();
             }
             animate();
         });
@@ -158,16 +159,16 @@
         let intersects = raycaster.intersectObjects(scene.children);
 
         for (let i = 0; i < scene.children.length; i++) {
-            scene.children[i].targetRotation = new THREE.Vector3();
             scene.children[i].targetRotation.y = 0;
             scene.children[i].targetRotation.x = 0;
+            scene.children[i].targetPosition.z = 0;
         }
 
         for (let i = 0; i < intersects.length; i++) {
             intersects[i].object.targetRotation.y = 0.5 * ((2 * intersects[i].uv.x) - 1);
             intersects[i].object.targetRotation.x = 0.5 * ((2 * intersects[i].uv.y) - 1);
+            intersects[i].object.targetPosition.z = 1;
         }
-
         for (let i = 0; i < scene.children.length; i++) {
             let child = scene.children[i];
             if (child.rotation.x != child.targetRotation.x) {
@@ -182,6 +183,13 @@
                 child.rotation.y += 0.1 * (delta);
                 if (Math.abs(delta) < 0.01) {
                     child.rotation.y = child.targetRotation.y;
+                }
+            }
+            if (child.position.z != child.targetPosition.z) {
+                let delta = child.targetPosition.z - child.position.z;
+                child.position.z += 0.1 * (delta);
+                if (Math.abs(delta) < 0.01) {
+                    child.position.z = child.targetPosition.z;
                 }
             }
         }

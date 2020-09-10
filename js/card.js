@@ -18,14 +18,19 @@ export class Card {
                 let cardGeometry = new THREE.PlaneGeometry(3 * aspectRatio, 3);
 
                 this.mesh = new THREE.Mesh(cardGeometry, cardMaterial);
-                this.mesh.rotation.z = this.rotation.z;
-                this.mesh.position.x = this.position.x;
-                this.mesh.position.y = this.position.y;
+                this.mesh.targetRotation = new THREE.Vector3();
+                this.mesh.targetPosition = new THREE.Vector3();
 
 
-                resolve(this.mesh);
+                resolve(this);
             });
         })
+    }
+
+    updatePosition() {
+        this.mesh.rotation.z = (this.rotation.z);
+        this.mesh.position.setX(this.position.x);
+        this.mesh.position.setY(this.position.y);
     }
 
     getMesh() {

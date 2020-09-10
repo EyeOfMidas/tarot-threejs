@@ -74,7 +74,16 @@
     let scene, camera, renderer, textureLoader, cards;
     let raycaster, mouse;
     Array.prototype.shuffle = function () {
-        this.sort(() => Math.random() - 0.5);
+        for (let i = this.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
+
+            // swap elements array[i] and array[j]
+            // we use "destructuring assignment" syntax to achieve that
+            // you'll find more details about that syntax in later chapters
+            // same can be written as:
+            // let t = array[i]; array[i] = array[j]; array[j] = t
+            [this[i], this[j]] = [this[j], this[i]];
+        }
     }
 
     function init() {
@@ -112,7 +121,7 @@
             "17_star.png",
             "18_moon.png",
             "19_sun.png",
-            "20_judgement.png",
+            "20_judgment.png",
             "21_world.png",
         ];
 

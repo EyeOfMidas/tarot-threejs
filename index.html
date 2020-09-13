@@ -168,8 +168,8 @@
             let intersected = intersects.find(intersect => intersect.object.cardId == currentCard.id);
 
             if (intersected) {
-                currentMesh.targetRotation.x = 0.5 * ((2 * intersected.uv.y) - 1);
-                currentMesh.targetRotation.y = 0.5 * ((2 * intersected.uv.x) - 1);
+                currentMesh.targetRotation.x = 0.39 * normalize(intersected.uv.y);
+                currentMesh.targetRotation.y = 0.39 * normalize(intersected.uv.x);
                 currentMesh.targetPosition.z = 1;
             }
 
@@ -208,12 +208,16 @@
     });
 
     document.addEventListener("mousemove", event => {
-        mouse.x = 2 * (event.clientX / window.innerWidth) - 1;
-        mouse.y = 2 * (event.clientY / window.innerHeight) - 1;
+        mouse.x = normalize(event.clientX / window.innerWidth);
+        mouse.y = normalize(event.clientY / window.innerHeight);
     });
 
     document.addEventListener("touchmove", event => {
-        mouse.x = 2 * (event.touches[0].clientX / window.innerWidth) - 1;
-        mouse.y = 2 * (event.touches[0].clientY / window.innerHeight) - 1;
+        mouse.x = normalize(event.touches[0].clientX / window.innerWidth);
+        mouse.y = normalize(event.touches[0].clientY / window.innerHeight);
     });
+
+    function normalize(value) {
+        return (2 * value) - 1;
+    }
 </script>

@@ -129,11 +129,11 @@
 
         textureLoader = new THREE.TextureLoader();
         cards = [];
-        cards.push(new Card(images.pop(), { x: -4, y: 0 }, { z: 0 }));
-        cards.push(new Card(images.pop(), { x: -2, y: 0 }, { z: 0 }));
-        cards.push(new Card(images.pop(), { x: 0, y: 0 }, { z: 0 }));
-        cards.push(new Card(images.pop(), { x: 2, y: 0 }, { z: 0 }));
-        cards.push(new Card(images.pop(), { x: 4, y: 0 }, { z: 0 }));
+        cards.push(new Card(cards.length, images.pop(), { x: -4, y: 0 }, { z: 0 }));
+        cards.push(new Card(cards.length, images.pop(), { x: -2, y: 0 }, { z: 0 }));
+        cards.push(new Card(cards.length, images.pop(), { x: 0, y: 0 }, { z: 0 }));
+        cards.push(new Card(cards.length, images.pop(), { x: 2, y: 0 }, { z: 0 }));
+        cards.push(new Card(cards.length, images.pop(), { x: 4, y: 0 }, { z: 0 }));
 
         let promises = [];
         for (let i = 0; i < cards.length; i++) {
@@ -158,38 +158,40 @@
         raycaster.setFromCamera(mouse, camera);
         let intersects = raycaster.intersectObjects(scene.children);
 
-        for (let i = 0; i < scene.children.length; i++) {
-            scene.children[i].targetRotation.y = 0;
-            scene.children[i].targetRotation.x = 0;
-            scene.children[i].targetPosition.z = 0;
-        }
 
-        for (let i = 0; i < intersects.length; i++) {
-            intersects[i].object.targetRotation.y = 0.5 * ((2 * intersects[i].uv.x) - 1);
-            intersects[i].object.targetRotation.x = 0.5 * ((2 * intersects[i].uv.y) - 1);
-            intersects[i].object.targetPosition.z = 1;
-        }
-        for (let i = 0; i < scene.children.length; i++) {
-            let child = scene.children[i];
-            if (child.rotation.x != child.targetRotation.x) {
-                let delta = child.targetRotation.x - child.rotation.x;
-                child.rotation.x += 0.1 * (delta);
+        for (let i = 0; i < cards.length; i++) {
+            let currentCard = cards[i];
+            let currentMesh = currentCard.getMesh();
+            currentMesh.targetRotation.x = 0;
+            currentMesh.targetRotation.y = 0;
+            currentMesh.targetPosition.z = 0;
+            let intersected = intersects.find(intersect => intersect.object.cardId == currentCard.id);
+
+            if (intersected) {
+                currentMesh.targetRotation.x = 0.5 * ((2 * intersected.uv.y) - 1);
+                currentMesh.targetRotation.y = 0.5 * ((2 * intersected.uv.x) - 1);
+                currentMesh.targetPosition.z = 1;
+            }
+
+            if (currentMesh.rotation.x != currentMesh.targetRotation.x) {
+                let delta = currentMesh.targetRotation.x - currentMesh.rotation.x;
+                currentMesh.rotation.x += 0.1 * (delta);
                 if (Math.abs(delta) < 0.01) {
-                    child.rotation.x = child.targetRotation.x;
+                    currentMesh.rotation.x = currentMesh.targetRotation.x;
                 }
             }
-            if (child.rotation.y != child.targetRotation.y) {
-                let delta = child.targetRotation.y - child.rotation.y;
-                child.rotation.y += 0.1 * (delta);
+            if (currentMesh.rotation.y != currentMesh.targetRotation.y) {
+                let delta = currentMesh.targetRotation.y - currentMesh.rotation.y;
+                currentMesh.rotation.y += 0.1 * (delta);
                 if (Math.abs(delta) < 0.01) {
-                    child.rotation.y = child.targetRotation.y;
+                    currentMesh.rotation.y = currentMesh.targetRotation.y;
                 }
             }
-            if (child.position.z != child.targetPosition.z) {
-                let delta = child.targetPosition.z - child.position.z;
-                child.position.z += 0.1 * (delta);
+            if (currentMesh.position.z != currentMesh.targetPosition.z) {
+                let delta = currentMesh.targetPosition.z - currentMesh.position.z;
+                currentMesh.position.z += 0.1 * (delta);
                 if (Math.abs(delta) < 0.01) {
-                    child.position.z = child.targetPosition.z;
+                    currentMesh.position.z = currentMesh.targetPosition.z;
                 }
             }
         }
@@ -206,12 +208,12 @@
     });
 
     document.addEventListener("mousemove", event => {
-        mouse.x = 2 * (event.clientX - (window.innerWidth / 2)) / window.innerWidth;
-        mouse.y = 2 * (event.clientY - (window.innerHeight / 2)) / window.innerHeight;
+        mouse.x = 2 * (event.clientX / window.innerWidth) - 1;
+        mouse.y = 2 * (event.clientY / window.innerHeight) - 1;
     });
 
     document.addEventListener("touchmove", event => {
-        mouse.x = 2 * (event.touches[0].clientX - (window.innerWidth / 2)) / window.innerWidth;
-        mouse.y = 2 * (event.touches[0].clientY - (window.innerHeight / 2)) / window.innerHeight;
+        mouse.x = 2 * (event.touches[0].clientX / window.innerWidth) - 1;
+        mouse.y = 2 * (event.touches[0].clientY / window.innerHeight) - 1;
     });
 </script>

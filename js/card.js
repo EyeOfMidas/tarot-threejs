@@ -1,7 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.120/build/three.module.js';
 export class Card {
 
-    constructor(imageFileName, position, rotation) {
+    constructor(id, imageFileName, position, rotation) {
+        this.id = id;
         this.imageFileName = imageFileName;
         this.mesh = null;
         this.position = position;
@@ -20,6 +21,7 @@ export class Card {
                 this.mesh = new THREE.Mesh(cardGeometry, cardMaterial);
                 this.mesh.targetRotation = new THREE.Vector3();
                 this.mesh.targetPosition = new THREE.Vector3();
+                this.mesh.cardId = this.id;
 
 
                 resolve(this);
@@ -36,5 +38,4 @@ export class Card {
     getMesh() {
         return this.mesh;
     }
-
 }

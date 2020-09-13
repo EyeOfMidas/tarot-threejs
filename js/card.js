@@ -20,7 +20,7 @@ export class Card {
 
                 this.mesh = new THREE.Mesh(cardGeometry, cardMaterial);
                 this.mesh.targetRotation = new THREE.Vector3();
-                this.mesh.targetPosition = new THREE.Vector3();
+                this.mesh.targetPosition = new THREE.Vector3(this.position.x, this.position.y, this.position.z);
                 this.mesh.cardId = this.id;
 
 
@@ -30,9 +30,8 @@ export class Card {
     }
 
     updatePosition() {
-        this.mesh.rotation.z = (this.rotation.z);
-        this.mesh.position.setX(this.position.x);
-        this.mesh.position.setY(this.position.y);
+        this.mesh.rotation.z = this.rotation.z;
+        this.mesh.position.set(this.position.x, this.position.y, this.position.z);
     }
 
     getMesh() {

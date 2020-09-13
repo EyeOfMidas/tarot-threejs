@@ -71,8 +71,9 @@
 <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.120/build/three.module.js';
     import { Card } from './js/card.js'
-    let scene, camera, renderer, textureLoader, cards;
-    let raycaster, mouse;
+    let scene, camera, renderer, textureLoader, raycaster, mouse;
+    let cards, tabletop, hoveredCard, heldCard;
+
     Array.prototype.shuffle = function () {
         for (let i = this.length - 1; i > 0; i--) {
             let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
@@ -90,10 +91,10 @@
         scene = new THREE.Scene();
         let aspectRatio = window.innerWidth / window.innerHeight;
         camera = new THREE.PerspectiveCamera(65, aspectRatio, 0.1, 1000);
-        camera.position.z = 5.4;
+        camera.position.z = 6.4;
 
         raycaster = new THREE.Raycaster();
-        mouse = new THREE.Vector2();
+        mouse = new THREE.Vector2(-1, -1);
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -129,11 +130,11 @@
 
         textureLoader = new THREE.TextureLoader();
         cards = [];
-        cards.push(new Card(cards.length, images.pop(), { x: -4, y: 0 }, { z: 0 }));
-        cards.push(new Card(cards.length, images.pop(), { x: -2, y: 0 }, { z: 0 }));
-        cards.push(new Card(cards.length, images.pop(), { x: 0, y: 0 }, { z: 0 }));
-        cards.push(new Card(cards.length, images.pop(), { x: 2, y: 0 }, { z: 0 }));
-        cards.push(new Card(cards.length, images.pop(), { x: 4, y: 0 }, { z: 0 }));
+        cards.push(new Card(cards.length, images.pop(), new THREE.Vector3(-4, 0, 0.1), { z: 0 }));
+        cards.push(new Card(cards.length, images.pop(), new THREE.Vector3(-2, 0, 0.1), { z: 0 }));
+        cards.push(new Card(cards.length, images.pop(), new THREE.Vector3(0, 0, 0.1), { z: 0 }));
+        cards.push(new Card(cards.length, images.pop(), new THREE.Vector3(2, 0, 0.1), { z: 0 }));
+        cards.push(new Card(cards.length, images.pop(), new THREE.Vector3(4, 0, 0.1), { z: 0 }));
 
         let promises = [];
         for (let i = 0; i < cards.length; i++) {
@@ -142,10 +143,18 @@
         Promise.all(promises).then((loadedCards) => {
             for (let i = 0; i < loadedCards.length; i++) {
                 scene.add(loadedCards[i].getMesh());
-                loadedCards[i].updatePosition();
             }
             animate();
         });
+
+        let tabletopGeometry = new THREE.PlaneGeometry(20, 20, 8, 8);
+        let tabletopMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        tabletop = new THREE.Mesh(tabletopGeometry, tabletopMaterial);
+
+        scene.add(tabletop);
+
+        hoveredCard = null;
+        heldCard = null;
     }
 
     function animate(time) {
@@ -157,44 +166,65 @@
     function update() {
         raycaster.setFromCamera(mouse, camera);
         let intersects = raycaster.intersectObjects(scene.children);
+        let tableIntersect = raycaster.intersectObject(tabletop);
+        hoveredCard = null;
 
+        // if (tableIntersect && heldCard) {
+        //     let heldMesh = heldCard.getMesh();
+        //     heldMesh.targetRotation.x = 0;
+        //     heldMesh.targetRotation.y = 0;
+
+        //     heldMesh.targetPosition.x = tableIntersect[0].point.x;
+        //     heldMesh.targetPosition.y = tableIntersect[0].point.y;
+
+        //     heldMesh.rotation.x = easeValue(heldMesh.rotation.x, heldMesh.targetRotation.x);
+        //     heldMesh.rotation.y = easeValue(heldMesh.rotation.y, heldMesh.targetRotation.y);
+
+        //     heldMesh.position.x = easeValue(heldMesh.position.x, heldMesh.targetPosition.x);
+        //     heldMesh.position.y = easeValue(heldMesh.position.y, heldMesh.targetPosition.y);
+        //     heldMesh.position.z = easeValue(heldMesh.position.z, heldMesh.targetPosition.z);
+        //     return;
+        // }
 
         for (let i = 0; i < cards.length; i++) {
             let currentCard = cards[i];
             let currentMesh = currentCard.getMesh();
             currentMesh.targetRotation.x = 0;
             currentMesh.targetRotation.y = 0;
-            currentMesh.targetPosition.z = 0;
+            currentMesh.targetPosition.z = 0.1;
             let intersected = intersects.find(intersect => intersect.object.cardId == currentCard.id);
 
             if (intersected) {
-                currentMesh.targetRotation.x = 0.39 * normalize(intersected.uv.y);
+                hoveredCard = currentCard;
+                currentMesh.targetRotation.x = -0.39 * normalize(intersected.uv.y);
                 currentMesh.targetRotation.y = 0.39 * normalize(intersected.uv.x);
-                currentMesh.targetPosition.z = 1;
+                currentMesh.targetPosition.z = 1.1;
             }
 
-            if (currentMesh.rotation.x != currentMesh.targetRotation.x) {
-                let delta = currentMesh.targetRotation.x - currentMesh.rotation.x;
-                currentMesh.rotation.x += 0.1 * (delta);
-                if (Math.abs(delta) < 0.01) {
-                    currentMesh.rotation.x = currentMesh.targetRotation.x;
-                }
+            if (tableIntersect && heldCard && heldCard.id == currentCard.id) {
+                currentMesh.targetPosition.x = tableIntersect[0].point.x;
+                currentMesh.targetPosition.y = tableIntersect[0].point.y;
             }
-            if (currentMesh.rotation.y != currentMesh.targetRotation.y) {
-                let delta = currentMesh.targetRotation.y - currentMesh.rotation.y;
-                currentMesh.rotation.y += 0.1 * (delta);
-                if (Math.abs(delta) < 0.01) {
-                    currentMesh.rotation.y = currentMesh.targetRotation.y;
-                }
-            }
-            if (currentMesh.position.z != currentMesh.targetPosition.z) {
-                let delta = currentMesh.targetPosition.z - currentMesh.position.z;
-                currentMesh.position.z += 0.1 * (delta);
-                if (Math.abs(delta) < 0.01) {
-                    currentMesh.position.z = currentMesh.targetPosition.z;
-                }
+
+            currentMesh.rotation.x = easeValue(currentMesh.rotation.x, currentMesh.targetRotation.x);
+            currentMesh.rotation.y = easeValue(currentMesh.rotation.y, currentMesh.targetRotation.y);
+
+            currentMesh.position.x = easeValue(currentMesh.position.x, currentMesh.targetPosition.x);
+            currentMesh.position.y = easeValue(currentMesh.position.y, currentMesh.targetPosition.y);
+            currentMesh.position.z = easeValue(currentMesh.position.z, currentMesh.targetPosition.z);
+        }
+    }
+
+    function easeValue(currentValue, targetValue, step = 0.1, threshold = 0.01) {
+        let newValue = currentValue;
+        if (currentValue != targetValue) {
+            let delta = targetValue - currentValue;
+            newValue = currentValue + step * (delta);
+            if (Math.abs(delta) < threshold) {
+                newValue = targetValue;
             }
         }
+        return newValue;
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -209,12 +239,25 @@
 
     document.addEventListener("mousemove", event => {
         mouse.x = normalize(event.clientX / window.innerWidth);
-        mouse.y = normalize(event.clientY / window.innerHeight);
+        mouse.y = -normalize(event.clientY / window.innerHeight);
+    });
+
+    document.addEventListener("mousedown", event => {
+        mouse.x = normalize(event.clientX / window.innerWidth);
+        mouse.y = -normalize(event.clientY / window.innerHeight);
+        heldCard = null;
+        if (hoveredCard) {
+            heldCard = hoveredCard;
+        }
+    });
+
+    document.addEventListener("mouseup", event => {
+        heldCard = null;
     });
 
     document.addEventListener("touchmove", event => {
         mouse.x = normalize(event.touches[0].clientX / window.innerWidth);
-        mouse.y = normalize(event.touches[0].clientY / window.innerHeight);
+        mouse.y = -normalize(event.touches[0].clientY / window.innerHeight);
     });
 
     function normalize(value) {

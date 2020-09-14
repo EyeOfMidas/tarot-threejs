@@ -19,7 +19,8 @@ export class Card {
                 let cardGeometry = new THREE.PlaneGeometry(3 * aspectRatio, 3);
 
                 this.mesh = new THREE.Mesh(cardGeometry, cardMaterial);
-                this.mesh.targetRotation = new THREE.Vector3();
+                this.mesh.targetRotation = new THREE.Vector3(this.rotation.x, this.rotation.y, this.rotation.z);
+                this.mesh.rotation.set(this.rotation.x, this.rotation.y, this.rotation.z);
                 this.mesh.targetPosition = new THREE.Vector3(this.position.x, this.position.y, this.position.z);
                 this.mesh.cardId = this.id;
 
@@ -27,11 +28,6 @@ export class Card {
                 resolve(this);
             });
         })
-    }
-
-    updatePosition() {
-        this.mesh.rotation.z = this.rotation.z;
-        this.mesh.position.set(this.position.x, this.position.y, this.position.z);
     }
 
     getMesh() {

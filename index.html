@@ -169,22 +169,32 @@
         let tableIntersect = raycaster.intersectObject(tabletop);
         hoveredCard = null;
 
-        // if (tableIntersect && heldCard) {
-        //     let heldMesh = heldCard.getMesh();
-        //     heldMesh.targetRotation.x = 0;
-        //     heldMesh.targetRotation.y = 0;
+        if (tableIntersect && heldCard) {
+            let heldMesh = heldCard.getMesh();
 
-        //     heldMesh.targetPosition.x = tableIntersect[0].point.x;
-        //     heldMesh.targetPosition.y = tableIntersect[0].point.y;
+            heldMesh.targetRotation.x = 0;
+            heldMesh.targetRotation.y = 0;
+            heldMesh.targetPosition.z = 0.1;
 
-        //     heldMesh.rotation.x = easeValue(heldMesh.rotation.x, heldMesh.targetRotation.x);
-        //     heldMesh.rotation.y = easeValue(heldMesh.rotation.y, heldMesh.targetRotation.y);
+            heldMesh.targetPosition.x = tableIntersect[0].point.x;
+            heldMesh.targetPosition.y = tableIntersect[0].point.y;
 
-        //     heldMesh.position.x = easeValue(heldMesh.position.x, heldMesh.targetPosition.x);
-        //     heldMesh.position.y = easeValue(heldMesh.position.y, heldMesh.targetPosition.y);
-        //     heldMesh.position.z = easeValue(heldMesh.position.z, heldMesh.targetPosition.z);
-        //     return;
-        // }
+            let intersected = intersects.find(intersect => intersect.object.cardId == heldCard.id);
+
+            if (intersected) {
+                heldMesh.targetRotation.x = -0.39 * normalize(intersected.uv.y);
+                heldMesh.targetRotation.y = 0.39 * normalize(intersected.uv.x);
+                heldMesh.targetPosition.z = 1.2;
+            }
+
+            heldMesh.rotation.x = easeValue(heldMesh.rotation.x, heldMesh.targetRotation.x);
+            heldMesh.rotation.y = easeValue(heldMesh.rotation.y, heldMesh.targetRotation.y);
+
+            heldMesh.position.x = easeValue(heldMesh.position.x, heldMesh.targetPosition.x);
+            heldMesh.position.y = easeValue(heldMesh.position.y, heldMesh.targetPosition.y);
+            heldMesh.position.z = easeValue(heldMesh.position.z, heldMesh.targetPosition.z);
+            return;
+        }
 
         for (let i = 0; i < cards.length; i++) {
             let currentCard = cards[i];
@@ -196,14 +206,9 @@
 
             if (intersected) {
                 hoveredCard = currentCard;
-                currentMesh.targetRotation.x = -0.39 * normalize(intersected.uv.y);
-                currentMesh.targetRotation.y = 0.39 * normalize(intersected.uv.x);
-                currentMesh.targetPosition.z = 1.1;
-            }
-
-            if (tableIntersect && heldCard && heldCard.id == currentCard.id) {
-                currentMesh.targetPosition.x = tableIntersect[0].point.x;
-                currentMesh.targetPosition.y = tableIntersect[0].point.y;
+                currentMesh.targetRotation.x = -0.30 * normalize(intersected.uv.y);
+                currentMesh.targetRotation.y = 0.30 * normalize(intersected.uv.x);
+                currentMesh.targetPosition.z = 0.7;
             }
 
             currentMesh.rotation.x = easeValue(currentMesh.rotation.x, currentMesh.targetRotation.x);
@@ -252,6 +257,8 @@
     });
 
     document.addEventListener("mouseup", event => {
+        heldCard.getMesh().targetPosition.x = Math.round(heldCard.getMesh().targetPosition.x);
+        heldCard.getMesh().targetPosition.y = Math.round(heldCard.getMesh().targetPosition.y);
         heldCard = null;
     });
 
